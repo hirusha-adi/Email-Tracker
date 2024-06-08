@@ -34,105 +34,40 @@ def log_open_mail():
 
     print(f"EMAIL-OPENED: {ip}")
 
-    ip_data_req = requests.get(f"http://ip-api.com/json/{ip.split(',')[0]}")
+    try:
+        ip_data = requests.get(f"http://ip-api.com/json/{ip.split(',')[0]}").json()
+    except requests.RequestException:
+        ip_data = {}
 
-    if 300 > ip_data_req.status_code >= 200:
-        try:
-            ip_data = ip_data_req.json()
-        except:
-            ip_data = False
-    else:
-        ip_data = False
+    write_file_data = f"""
+    \n\n------------------------\n\nEMAIL-OPENED: {datetime.now()}:
+    IP - {ip}
+    Browser -
+        Family: {ua.browser.family}
+        Version: {ua.browser.version_string}
+    OS -
+        Family: {ua.os.family}
+        Version: {ua.os.version_string}
+    Device -
+        Family: {ua.device.family}
+        Model: {ua.device.model}
+        Brand: {ua.device.brand}"""
 
-    write_file_data = f"""\n\n------------------------\n\nEMAIL-OPENED: {datetime.now()}:
-IP - {ip.split(',')[0]}
-Broswer -
-    Family: {ua.browser.family}
-    Version: {ua.browser.version_string}
-OS -
-    Family: {ua.os.family}
-    Version: {ua.os.version_string}
-Device -
-    Family: {ua.device.family}
-    Model: {ua.device.model}
-    Brand: {ua.device.brand}"""
-
-    if ip_data == False:
-        pass
-    else:
-        write_file_data += f"\nIP Info -"
-        try:
-            write_file_data += f"""    IP: {ip.split(',')[0]}"""
-        except:
-            # write_file_data += f"""    DAMN! Somthing is really wrong!"""
-            pass
-
-        try:
-            write_file_data += f"""    Country: {ip_data["country"]}"""
-        except:
-            # write_file_data += f"""    Country: Error"""
-            pass
-
-        try:
-            write_file_data += f"""    Country Code: {ip_data["countryCode"]}"""
-        except:
-            # write_file_data += f"""    Country Code: Error"""
-            pass
-
-        try:
-            # write_file_data +=
-            write_file_data += f"""    Region: {ip_data["region"]}"""
-        except:
-            # write_file_data += f"""    Region: Error"""
-            pass
-
-        try:
-            write_file_data += f"""    Region Name: {ip_data["regionName"]}"""
-        except:
-            # write_file_data += f"""    Region Name: Error"""
-            pass
-
-        try:
-            write_file_data += f"""    City: {ip_data["city"]}"""
-        except:
-            # write_file_data += f"""    City: Error"""
-            pass
-
-        try:
-            write_file_data += f"""    ZIP: {ip_data["zip"]}"""
-        except:
-            # write_file_data += f"""    ZIP: Error"""
-            pass
-
-        try:
-            write_file_data += f"""    Latitude: {ip_data["lat"]}"""
-        except:
-            # write_file_data += f"""    Latitude: Error"""
-            pass
-
-        try:
-            write_file_data += f"""    Longitude: {ip_data["lon"]}"""
-        except:
-            # write_file_data += f"""    Longitude: Error"""
-            pass
-
-        try:
-            write_file_data += f"""    TimeZone: {ip_data["timezone"]}"""
-        except:
-            # write_file_data += f"""    TimeZone: Error"""
-            pass
-
-        try:
-            write_file_data += f"""    ISP: {ip_data["isp"]}"""
-        except:
-            # write_file_data += f"""    ISP: Error"""
-            pass
-
-        try:
-            write_file_data += f"""    Organization: {ip_data["org"]}"""
-        except:
-            # write_file_data += f"""    Organization: Error"""
-            pass
+    if ip_data:
+        write_file_data += f"""
+        IP Info -
+        Country: {ip_data.get('country', 'N/A')}
+        Country Code: {ip_data.get('countryCode', 'N/A')}
+        Region: {ip_data.get('region', 'N/A')}
+        Region Name: {ip_data.get('regionName', 'N/A')}
+        City: {ip_data.get('city', 'N/A')}
+        ZIP: {ip_data.get('zip', 'N/A')}
+        Latitude: {ip_data.get('lat', 'N/A')}
+        Longitude: {ip_data.get('lon', 'N/A')}
+        TimeZone: {ip_data.get('timezone', 'N/A')}
+        ISP: {ip_data.get('isp', 'N/A')}
+        Organization: {ip_data.get('org', 'N/A')}
+        """
 
     print(write_file_data)
 
@@ -148,11 +83,10 @@ Device -
 def index():
     log_open_mail()
     filenames = []
-    for filename in os.listdir(os.getcwd()):
-        if filename.lower().endswith('png') or filename.lower().endswith('jpg') or filename.lower().endswith('jpeg'):
-            filenames.append(filename)
-    rfilename = random.choice(filenames)
-    return send_from_directory(".", f"{rfilename}")
+    images = [f for f in os.listdir(os.getcwd()) if f.lower().endswith(('png', 'jpg', 'jpeg'))]
+    if not images:
+        return "No images found", 404
+    return send_from_directory(".", f"{random.choice(filenames)}")
 
 
 # Im not very confident about this
