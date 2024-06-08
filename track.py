@@ -1,15 +1,10 @@
 import os
-import platform
 import random
 from datetime import datetime
 
 
 def pip_install(module_name):
-    if platform.system().lower().startswith('win'):
-        os.system(f"pip install {module_name}")
-    else:
-        os.system(f"pip3 install {module_name}")
-
+    os.system(f"{'pip' if os.name == 'nt' else 'pip3'} install {module_name}")
 
 try:
     from flask import Flask, request, send_from_directory
